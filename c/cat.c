@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <getopt.h>
 
 
 const char *HELP =
@@ -50,54 +51,68 @@ typedef struct {
 
 // parse arguments
 void parse_args(Args *args, int argc, char *argv[]) {
-    int fpos = 0;
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--help") == 0) {
+    struct option longopts[] = {
+        {"help",             no_argument, NULL, 'H'},
+        {"version",          no_argument, NULL, 'V'},
+        {"show-all",         no_argument, NULL, 'A'},
+        {"number-nonblank",  no_argument, NULL, 'b'},
+        {"show-ends",        no_argument, NULL, 'E'},
+        {"number",           no_argument, NULL, 'n'},
+        {"squeeze-blank",    no_argument, NULL, 's'},
+        {"show-tabs",        no_argument, NULL, 'T'},
+        {"show-nonprinting", no_argument, NULL, 'v'},
+        {NULL,               0,           NULL, 0  },
+    };
+    int opt;
+    while ((opt = getopt_long(argc, argv, "AbeEnstTvu", longopts, NULL)) != -1) {
+        switch (opt) {
+        case 'H':
             puts(HELP);
             exit(0);
-        }
-        else if (strcmp(argv[i], "--version") == 0) {
+        case 'V':
             puts(VERSION);
             exit(0);
-        }
-        else if (strcmp(argv[i], "-A") == 0 || strcmp(argv[i], "--show-all") == 0) {
+        case 'A':
             args->v = args->E = args->T = true;
-        }
-        else if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--number-nonblank") == 0) {
+            break;
+        case 'b':
             args->b = true;
-        }
-        else if (strcmp(argv[i], "-e") == 0) {
+            break;
+        case 'e':
             args->v = args->E = true;
-        }
-        else if (strcmp(argv[i], "-E") == 0 || strcmp(argv[i], "--show-ends") == 0) {
+            break;
+        case 'E':
             args->E = true;
-        }
-        else if (strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "--number") == 0) {
+            break;
+        case 'n':
             args->n = true;
-        }
-        else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--squeeze-blank") == 0) {
+            break;
+        case 's':
             args->s = true;
-        }
-        else if (strcmp(argv[i], "-t") == 0) {
+            break;
+        case 't':
             args->v = args->T = true;
-        }
-        else if (strcmp(argv[i], "-T") == 0 || strcmp(argv[i], "--show-tabs") == 0) {
+            break;
+        case 'T':
             args->T = true;
-        }
-        else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--show-nonprinting") == 0) {
+            break;
+        case 'v':
             args->v = true;
-        }
-        else if (strcmp(argv[i], "-u") == 0) {
-            ;
-        }
-        else {
-            args->fnames[fpos++] = argv[i];
+            break;
+        case 'u':
+            break;
+        default:
+            exit(1);
         }
     }
-
     // override
     if (args->b) {
         args->n = false;
+    }
+
+    int fpos = 0;
+    for (int i = optind; i < argc; i++) {
+        args->fnames[fpos++] = argv[i];
     }
     // stdin if no target file
     if (fpos == 0) {
@@ -172,7 +187,7 @@ int main (int argc, char *argv[]) {
             fp = stdin;
         }
         else {
-            if ((fp = fopen(fname, "r")) == NULL) {
+            if ((fp = fopen(fname, "rb")) == NULL) {
                 fputs("file open error", stderr);
                 return 1;
             }

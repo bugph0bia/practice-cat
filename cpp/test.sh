@@ -20,45 +20,43 @@ assert() {
     fi
 }
 
-assert cat.c 
-assert cat.c -A
-assert cat.c -b
-assert cat.c -e
-assert cat.c -E
-assert cat.c -n
-assert cat.c -s
-assert cat.c -t
-assert cat.c -T
-assert cat.c -u
-assert cat.c -v
-assert cat.c -vET
-assert cat.c --show-all
-assert cat.c --number-nonblank
-assert cat.c --show-ends
-assert cat.c --number
-assert cat.c --squeeze-blank
-assert cat.c --show-tabs
-assert cat.c --show-nonprinting
+assert cat.cpp 
+assert cat.cpp -A
+assert cat.cpp -b
+assert cat.cpp -e
+assert cat.cpp -E
+assert cat.cpp -n
+assert cat.cpp -s
+assert cat.cpp -t
+assert cat.cpp -T
+assert cat.cpp -u
+assert cat.cpp -v
+assert cat.cpp --show-all
+assert cat.cpp --number-nonblank
+assert cat.cpp --show-ends
+assert cat.cpp --number
+assert cat.cpp --squeeze-blank
+assert cat.cpp --show-tabs
+assert cat.cpp --show-nonprinting
 
-assert cat.c cat.c
-assert cat.c cat.c -A
-assert cat.c cat.c -b
-assert cat.c cat.c -e
-assert cat.c cat.c -E
-assert cat.c cat.c -n
-assert cat.c cat.c -s
-assert cat.c cat.c -t
-assert cat.c cat.c -T
-assert cat.c cat.c -u
-assert cat.c cat.c -v
-assert cat.c cat.c -vET
-assert cat.c cat.c --show-all
-assert cat.c cat.c --number-nonblank
-assert cat.c cat.c --show-ends
-assert cat.c cat.c --number
-assert cat.c cat.c --squeeze-blank
-assert cat.c cat.c --show-tabs
-assert cat.c cat.c --show-nonprinting
+assert cat.cpp cat.cpp
+assert cat.cpp cat.cpp -A
+assert cat.cpp cat.cpp -b
+assert cat.cpp cat.cpp -e
+assert cat.cpp cat.cpp -E
+assert cat.cpp cat.cpp -n
+assert cat.cpp cat.cpp -s
+assert cat.cpp cat.cpp -t
+assert cat.cpp cat.cpp -T
+assert cat.cpp cat.cpp -u
+assert cat.cpp cat.cpp -v
+assert cat.cpp cat.cpp --show-all
+assert cat.cpp cat.cpp --number-nonblank
+assert cat.cpp cat.cpp --show-ends
+assert cat.cpp cat.cpp --number
+assert cat.cpp cat.cpp --squeeze-blank
+assert cat.cpp cat.cpp --show-tabs
+assert cat.cpp cat.cpp --show-nonprinting
 
 assert cat.o
 assert cat.o -A
@@ -71,7 +69,6 @@ assert cat.o -t
 assert cat.o -T
 assert cat.o -u
 assert cat.o -v
-assert cat.o -vET
 assert cat.o --show-all
 assert cat.o --number-nonblank
 assert cat.o --show-ends
@@ -91,7 +88,6 @@ assert cat.o cat -t
 assert cat.o cat -T
 assert cat.o cat -u
 assert cat.o cat -v
-assert cat.o cat -vET
 assert cat.o cat --show-all
 assert cat.o cat --number-nonblank
 assert cat.o cat --show-ends
