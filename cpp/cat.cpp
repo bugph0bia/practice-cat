@@ -1,7 +1,10 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
+#include <getopt.h>
 
 
 const std::string HELP =
@@ -49,58 +52,70 @@ typedef struct {
 
 // parse arguments
 void parse_args(Args &args, const int argc, char *argv[]) {
-    int fpos = 0;
-    for (int i = 1; i < argc; i++) {
-        std::string cur_arg = argv[i];
-        if (cur_arg == "--help") {
-            std::cout << HELP << std::endl;
+    struct option longopts[] = {
+        {"help",             no_argument, NULL, 'H'},
+        {"version",          no_argument, NULL, 'V'},
+        {"show-all",         no_argument, NULL, 'A'},
+        {"number-nonblank",  no_argument, NULL, 'b'},
+        {"show-ends",        no_argument, NULL, 'E'},
+        {"number",           no_argument, NULL, 'n'},
+        {"squeeze-blank",    no_argument, NULL, 's'},
+        {"show-tabs",        no_argument, NULL, 'T'},
+        {"show-nonprinting", no_argument, NULL, 'v'},
+        {NULL,               0,           NULL, 0  },
+    };
+    int opt;
+    while ((opt = getopt_long(argc, argv, "AbeEnstTvu", longopts, NULL)) != -1) {
+        switch (opt) {
+        case 'H':
+            std::cout << HELP;
             std::exit(0);
-        }
-        else if (cur_arg == "--version") {
-            std::cout << VERSION << std::endl;
+        case 'V':
+            std::cout << VERSION;
             std::exit(0);
-        }
-        else if (cur_arg == "-A" || cur_arg == "--show-all") {
+        case 'A':
             args.v = args.E = args.T = true;
-        }
-        else if (cur_arg == "-b" || cur_arg == "--number-nonblank") {
+            break;
+        case 'b':
             args.b = true;
-        }
-        else if (cur_arg == "-e") {
+            break;
+        case 'e':
             args.v = args.E = true;
-        }
-        else if (cur_arg == "-E" || cur_arg == "--show-ends") {
+            break;
+        case 'E':
             args.E = true;
-        }
-        else if (cur_arg == "-n" || cur_arg == "--number") {
+            break;
+        case 'n':
             args.n = true;
-        }
-        else if (cur_arg == "-s" || cur_arg == "--squeeze-blank") {
+            break;
+        case 's':
             args.s = true;
-        }
-        else if (cur_arg == "-t") {
+            break;
+        case 't':
             args.v = args.T = true;
-        }
-        else if (cur_arg == "-T" || cur_arg == "--show-tabs") {
+            break;
+        case 'T':
             args.T = true;
-        }
-        else if (cur_arg == "-v" || cur_arg == "--show-nonprinting") {
+            break;
+        case 'v':
             args.v = true;
-        }
-        else if (cur_arg == "-u") {
-            ;
-        }
-        else {
-            args.fnames.push_back(cur_arg);
+            break;
+        case 'u':
+            break;
+        default:
+            exit(1);
         }
     }
-
     // override
     if (args.b) {
         args.n = false;
     }
+
+    for (int i = optind; i < argc; i++) {
+        args.fnames.push_back(argv[i]);
+    }
     // stdin if no target file
-    if (fpos == 0) {
+    if (args.fnames.empty()) {
         args.fnames.push_back("-");
     }
 }
@@ -137,7 +152,8 @@ void print_char(char ch, Args &args, status &stat) {
 
         // convert to ^ notation
         if (ch2 >= 0x00 && ch2 <= 0x1F) {
-            std::cout << "^" << (ch2 + '@');
+            ch2 += '@';
+            std::cout << "^" << ch2;
         }
         else if (ch2 == 0x7F) {
             std::cout << "^?";
@@ -165,27 +181,29 @@ int main (int argc, char *argv[]) {
     status stat = {0};
     for (std::string &fname : args.fnames) {
         // set target file pointer
-        std::unique_ptr<std::istream> fp;
+        std::unique_ptr<std::basic_istream<char>> ist;
         if (fname == "" || fname == "-") {
-            fp = std::cin;
+            ist.reset(&std::cin);
         }
         else {
-            std::ifstream 
-            if ((fp = fopen(fname, "r")) == NULL) {
-                fputs("file open error", stderr);
+            ist = std::make_unique<std::ifstream>(fname, std::ios::in | std::ios::binary);
+            if (ist->fail()) {
+                std::cerr << "file open error";
                 return 1;
             }
         }
 
         // print characters
-        uint8_t ch;
-        while (fread(&ch, 1, 1, fp) > 0) {
-            print_char(ch, &args, &stat);
+        char ch;
+        for (;;) {
+            ist->read(&ch, 1);
+            if (ist->eof()) break;
+            print_char(ch, args, stat);
         }
 
-        // file close
-        if (fp && fp != stdin) {
-            fclose(fp);
+        // not close the stream if stream is stdin
+        if (&*ist == &std::cin) {
+            ist.release();
         }
     }
 }

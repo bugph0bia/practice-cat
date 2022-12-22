@@ -31,6 +31,7 @@ assert cat.cpp -t
 assert cat.cpp -T
 assert cat.cpp -u
 assert cat.cpp -v
+assert cat.cpp -vET
 assert cat.cpp --show-all
 assert cat.cpp --number-nonblank
 assert cat.cpp --show-ends
@@ -50,6 +51,7 @@ assert cat.cpp cat.cpp -t
 assert cat.cpp cat.cpp -T
 assert cat.cpp cat.cpp -u
 assert cat.cpp cat.cpp -v
+assert cat.cpp cat.cpp -vE
 assert cat.cpp cat.cpp --show-all
 assert cat.cpp cat.cpp --number-nonblank
 assert cat.cpp cat.cpp --show-ends
@@ -69,6 +71,7 @@ assert cat.o -t
 assert cat.o -T
 assert cat.o -u
 assert cat.o -v
+assert cat.o -vET
 assert cat.o --show-all
 assert cat.o --number-nonblank
 assert cat.o --show-ends
@@ -88,6 +91,7 @@ assert cat.o cat -t
 assert cat.o cat -T
 assert cat.o cat -u
 assert cat.o cat -v
+assert cat.o cat -vET
 assert cat.o cat --show-all
 assert cat.o cat --number-nonblank
 assert cat.o cat --show-ends
