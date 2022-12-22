@@ -31,7 +31,7 @@ const std::string HELP =
     "  cat        Copy standard input to standard output.";
 
 const std::string VERSION =
-    "cat (practice of c) v1.0\n"
+    "cat (practice of c++) v1.0\n"
     "Written by bugph0bia";
 
 
@@ -103,7 +103,7 @@ void parse_args(Args &args, const int argc, char *argv[]) {
         case 'u':
             break;
         default:
-            exit(1);
+            std::exit(1);
         }
     }
     // override
