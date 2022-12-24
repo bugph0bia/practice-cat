@@ -44,8 +44,10 @@ typedef struct {
 
 // print status
 typedef struct {
-    int lno;    // line no
-    int lfrep;  // count of LF repetitions
+    // line no
+    int lno;
+    // count of LF repetitions
+    int lfrep;
 } Status;
 
 
