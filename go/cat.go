@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -10,8 +11,7 @@ import (
 const help = `Usage: cat [OPTION]... [FILE]..
 Concatenate FILE(s) to standard output.
 
-With no FILE, or when FILE is -, read standard input.
-`
+With no FILE, or when FILE is -, read standard input.`
 
 const example = `
 Examples:
@@ -35,43 +35,8 @@ type Status struct {
 	lno int
 	// count of LF repetitions
 	lfrep int
-}
-
-func main() {
-	// parse arguments
-	var args Args
-	parseArgs(&args)
-
-	// loop target files
-	var stat Status
-	for _, fname := range args.fnames {
-		var file *os.File
-		if len(fname) == 0 || fname == "-" {
-			file = os.Stdin
-		} else {
-			f, err := os.Open(fname)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "file open error")
-				os.Exit(1)
-			}
-			defer f.Close()
-			file = f
-		}
-
-		// print characters
-		buff := make([]byte, 1)
-		for {
-			_, err := file.Read(buff)
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "file read error")
-				os.Exit(1)
-			}
-			printChar(buff[0], &args, &stat)
-		}
-	}
+	// writer
+	writer *bufio.Writer
 }
 
 // parse arguments
@@ -132,49 +97,88 @@ func parseArgs(args *Args) {
 func printChar(ch byte, args *Args, stat *Status) {
 	// -s
 	// squeeze blank
-	if args.flags && ch == "\n"[0] && stat.lfrep >= 2 {
+	if args.flags && ch == '\n' && stat.lfrep >= 2 {
 		return
 	}
 
 	// -n, -b
-	if (stat.lno == 0 || stat.lfrep > 0) && (args.flagn || (args.flagb && ch != "\n"[0])) {
+	if (stat.lno == 0 || stat.lfrep > 0) && (args.flagn || (args.flagb && ch != '\n')) {
 		stat.lno++
-		fmt.Printf("%6d\t", stat.lno)
+		fmt.Fprintf(stat.writer, "%6d\t", stat.lno)
 	}
 
 	// -E
 	// add $ at EOL
-	if args.flagE && ch == "\n"[0] {
-		fmt.Print("$")
+	if args.flagE && ch == '\n' {
+		fmt.Fprint(stat.writer, "$")
 	}
 
 	// -T, -v
 	// convert to ^ notation (only TAB)
-	if args.flagT && ch == "\t"[0] {
-		fmt.Print("^I")
-	} else if args.flagv && ch != "\t"[0] && ch != "\n"[0] {
+	if args.flagT && ch == '\t' {
+		fmt.Fprint(stat.writer, "^I")
+	} else if args.flagv && ch != '\t' && ch != '\n' {
 		if (ch & 0b1000_0000) != 0 {
-			fmt.Print("M-")
+			fmt.Fprint(stat.writer, "M-")
 		}
 		ch2 := ch &^ 0b1000_0000
 
 		// convert to ^ notation
 		if ch2 >= 0x00 && ch2 <= 0x1F {
-			fmt.Print("^")
-			fmt.Print(string(ch2 + "@"[0]))
+			fmt.Fprint(stat.writer, "^")
+			fmt.Fprintf(stat.writer, "%s", string([]byte{(ch2 + '@')}))
 		} else if ch2 == 0x7F {
-			fmt.Print("^?")
+			fmt.Fprint(stat.writer, "^?")
 		} else {
-			fmt.Print(string(ch2))
+			fmt.Fprintf(stat.writer, "%s", string([]byte{ch2}))
 		}
 	} else {
-		fmt.Print(string(ch))
+		fmt.Fprintf(stat.writer, "%s", string([]byte{ch}))
 	}
 
 	// count repean LF
-	if ch == "\n"[0] {
+	if ch == '\n' {
 		stat.lfrep++
 	} else {
 		stat.lfrep = 0
 	}
+}
+
+func main() {
+	// parse arguments
+	var args Args
+	parseArgs(&args)
+
+	// loop target files
+	var stat Status
+	stat.writer = bufio.NewWriterSize(os.Stdout, 1024*1024)
+	for _, fname := range args.fnames {
+		var file *os.File
+		if len(fname) == 0 || fname == "-" {
+			file = os.Stdin
+		} else {
+			f, err := os.Open(fname)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "file open error")
+				os.Exit(1)
+			}
+			defer f.Close()
+			file = f
+		}
+
+		// print characters
+		buff := make([]byte, 1)
+		for {
+			_, err := file.Read(buff)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "file read error")
+				os.Exit(1)
+			}
+			printChar(buff[0], &args, &stat)
+		}
+	}
+	stat.writer.Flush()
 }
